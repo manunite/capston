@@ -47,7 +47,10 @@ checkFlag=0
 addr = 0
 c = 0
 s = 0
-port = 5028
+port = 5030
+
+resultString = 0
+esTime = 0
 
 def unzip_archive(archive):
     tmpdir = os.path.join(tempfile.gettempdir(),
@@ -306,6 +309,7 @@ def checkImage():
 	global port
 	global checkFlag
 	
+	
 
 	while True :
 		
@@ -325,7 +329,7 @@ def checkImage():
 		
 
 		
-		print "AAA"
+		#print "AAA"
 		f = open(buf1, 'wb')
 		s.listen(2)
 
@@ -340,25 +344,15 @@ def checkImage():
 		while (1):
 			qqq = qqq + len(l)
 			#print "Receiving.. %s" % qqq
-			#print "%s"%l
 			f.write(l)
-			print "length %s"%len(l)
-			#if len(l) == 0 :
-			#	print "%s"%qqq
-			#	break
-			#if not l : break
 			l = c.recv(1024)
 			if l == "" : break
-			#if(l == -1) : 
-			#	break
 			
 		f.close()
 		print "Done Receving"
 
 		print 'send : %s -> Total Time'%buf,time.time() - startTime
 		
-		#c.send('Thank you for connecting')
-		#c.close()
 		
 		global lock
 		lock.acquire()
@@ -419,9 +413,17 @@ def classification():
 	print "bt_connected."
 	
 	
+	global resultString
+	global esTime
+	
+	
+	st = time.time()
+	
 	while True : 
 		
-		st = time.time()
+		
+		#esTime = time.time()
+		#st = time.time()
 		
 		global lock
 		
@@ -441,7 +443,7 @@ def classification():
 		lock.release()
 		
 		for i in range(0,1):
-			print '%s %s' %(answerArr[i][0]*100 , answerArr[i][1])
+			#print '%s %s' %(answerArr[i][0]*100 , answerArr[i][1])
 			resStr  = answerArr[i][1][0]
 			resStr += answerArr[i][1][1]
 			resStr += answerArr[i][1][2]
@@ -452,26 +454,26 @@ def classification():
 			resStr += answerArr[i][1][7]
 			resStr += answerArr[i][1][8]
 			
-			print 'ALLTIME : %s'%(time.time() - st)
-			print 'result : %s'%(resStr)
+			esTime = time.time() - st;
 			
-			################################################3
-			#port  = 5003
-
-			#s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			#s.bind(('', port))
-			#s.listen(1)
-
-			#c, addr = s.accept()
-
-			print 'Connected by', addr
+			if(resStr == resultString and esTime < 6):
+				print "CONTINUE"
+				semaphore = 1
+				continue
+			else:
+				st = time.time()
+				esTime = 0
+				resultString = resStr
+			
+			#print 'ALLTIME : %s'%(time.time() - st)
+			#print 'result : %s'%(resStr)
+			
+			#print 'Connected by', addr
+			
 			data = resStr
 			for x in range(len(a)):
 				if data == a[x]:
-					print "aaaaaaaaaaaaaaaaaaaaaaaa %s"%a[x]
-					print "bbbbbbbbbbbbbbbbbbbbbbbb %s"%b[x]
-					
-					sock.send(repr(b[x]))
+					sock.send(repr(b[x])) #b[x]
 					s.close()
 					break
 			###################################################
@@ -480,8 +482,8 @@ def classification():
 			
 			mylib.wlog(resStr)
 			
-			print '이미지 넘버 -> %s' % resStr
-			print '이미지 경로 -> %s' % inputImage
+			#print '이미지 넘버 -> %s' % resStr
+			#print '이미지 경로 -> %s' % inputImage
 			
 			os.system('play -q ../sound/isthere.mp3')
 			
